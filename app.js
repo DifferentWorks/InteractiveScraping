@@ -9,7 +9,7 @@ var port = 3000;
 var app = express();
 
 // STEP 1:setting up the biolerplate and routing
-app.get('/', function(req, res){
+app.get('/wikipedia', function(req, res){
   //All the web scraping magic will happen here
 
   // storing url
@@ -30,7 +30,10 @@ app.get('/', function(req, res){
 
         data.articleTitle = $(this).find('#firstHeading').text();
         data.articleImg = $(this).find('img').first().attr('src');
-        data.articleParagraph = $(this).find('p:nth-of-type(2)').text();
+        data.articleParagraph = $(this).find('p').first().text();
+
+        // find second paragraph
+        // data.articleParagraph = $(this).find('p:nth-of-type(2)').text();
 
       });
 
@@ -45,6 +48,38 @@ app.get('/', function(req, res){
   // res.send('Hello Wolrd!');
 });
 
+
+app.get('/imdb', function(req, res){
+  //All the web scraping magic will happen here
+
+  // storing url
+  var url = 'https://ww.imdb.com/chart/top';
+
+  // making http request
+  request(url, function(error, response, html){
+    if(!error) {
+      // res.send(html);
+      var $ = cheerio.load(html);
+
+      // array for scraping images
+      var data = [];
+
+      $('.lister-list').filter(function(){
+        $(this).find('tr').each(function(i, elem){
+        data[i] ="'" + $(this).find('.posterColumn').find('img').attr('src') + "'";
+          });
+        });
+
+      res.send(data);
+
+      fs.writeFile('imdb-output.js', 'var imdb_list =[' + data + ']', function(err){
+        console.log('File written on hard drive');
+      });
+    }
+  });
+
+  // res.send('Hello Wolrd!');
+});
 app.listen(port);
 console.log('Magic happens on port' + port);
 
